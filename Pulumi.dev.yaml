@@ -1,9 +1,6 @@
 config:
-  # GCP project will be set via GOOGLE_CLOUD_PROJECT environment variable
-  # or via gcp:project config if needed
-  
   clusters:
-    - name: primary-gke
+    - name: primary-crossbar
       region: asia-northeast1
       networking:
         vpcName: gke-egress-vpc
