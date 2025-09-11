@@ -11,9 +11,15 @@ importers:
       '@pulumi/gcp':
         specifier: ^8.0.0
         version: 8.41.1(typescript@5.9.2)
+      '@pulumi/kubernetes':
+        specifier: ^4.0.0
+        version: 4.23.0(typescript@5.9.2)
       '@pulumi/pulumi':
         specifier: ^3.113.0
         version: 3.194.0(typescript@5.9.2)
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.2.2
     devDependencies:
       '@types/node':
         specifier: ^18
@@ -229,6 +235,9 @@ packages:
 
   '@pulumi/gcp@8.41.1':
     resolution: {integrity: sha512-cEuhyrys+h2HMMdAKIXT6QDjjMzQRDUDV9CytIw146lpXp2bACUr4NwMefX7LgzUW+ebs7t7YClU/sNbI3OaDw==}
+
+  '@pulumi/kubernetes@4.23.0':
+    resolution: {integrity: sha512-sMNV8cNx+MdvwNXCze3EiYgfRCTilJ9PMq4hqT8lOz7hgX5Un9yyDILJCkrt0wlGlB11Dgbq39mjwCeoImOEgg==}
 
   '@pulumi/pulumi@3.194.0':
     resolution: {integrity: sha512-sfoKKjprgxAO1gWOpjcJh+bTNwShkW7noJ5cRQxt8JVinenMLfnhIsQzhiZr5LH4g8v9degjicgRMfpj1spmbg==}
@@ -462,6 +471,10 @@ packages:
   defer-to-connect@2.0.1:
     resolution: {integrity: sha512-4tvttepXG1VaYGrRibk5EwJd1t4udunSOVMdLSAL6mId1ix438oPwPZMALY41FCijukO1L0twNcGsdzS7dHgDg==}
     engines: {node: '>=10'}
+
+  dotenv@17.2.2:
+    resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
+    engines: {node: '>=12'}
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -991,6 +1004,10 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
+  shell-quote@1.8.3:
+    resolution: {integrity: sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==}
+    engines: {node: '>= 0.4'}
+
   shimmer@1.2.1:
     resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
 
@@ -1470,6 +1487,17 @@ snapshots:
       - ts-node
       - typescript
 
+  '@pulumi/kubernetes@4.23.0(typescript@5.9.2)':
+    dependencies:
+      '@pulumi/pulumi': 3.194.0(typescript@5.9.2)
+      glob: 10.4.5
+      shell-quote: 1.8.3
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
+      - ts-node
+      - typescript
+
   '@pulumi/pulumi@3.194.0(typescript@5.9.2)':
     dependencies:
       '@grpc/grpc-js': 1.13.4
@@ -1736,6 +1764,8 @@ snapshots:
       mimic-response: 3.1.0
 
   defer-to-connect@2.0.1: {}
+
+  dotenv@17.2.2: {}
 
   eastasianwidth@0.2.0: {}
 
@@ -2276,6 +2306,8 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  shell-quote@1.8.3: {}
 
   shimmer@1.2.1: {}
 

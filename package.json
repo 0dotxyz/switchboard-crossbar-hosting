@@ -7,6 +7,8 @@
     },
     "dependencies": {
         "@pulumi/gcp": "^8.0.0",
-        "@pulumi/pulumi": "^3.113.0"
+        "@pulumi/kubernetes": "^4.0.0",
+        "@pulumi/pulumi": "^3.113.0",
+        "dotenv": "^17.2.2"
     }
 }

@@ -1,2 +1,35 @@
 config:
-  gcp:project: mrgn-prod
+  # GCP project will be set via GOOGLE_CLOUD_PROJECT environment variable
+  # or via gcp:project config if needed
+  
+  clusters:
+    - name: demo-gke
+      region: us-central1
+      networking:
+        vpcName: gke-egress-vpc
+        subnetCidr: 10.10.0.0/20
+        privateNodes: true
+      nodepool:
+        machineType: e2-standard-4
+        diskSizeGb: 100
+        spot: true
+        minNodes: 1
+        maxNodes: 3
+      egress:
+        numNatAddresses: 4
+        minPortsPerVm: 2048
+      ingress:
+        allocateGlobalStaticIp: true
+        hostTemplate: ${LB_IP}.sslip.io
+      app:
+        image: switchboardlabs/rust-crossbar:rc_25_09_10_20_19
+        hpa:
+          enabled: true
+          minReplicas: 1
+          maxReplicas: 5
+          targetCpuUtilization: 70
+          targetMemoryUtilization: 80
+        resources:
+          requests: { cpu: 200m, memory: 256Mi }
+          limits:   { cpu: 500m, memory: 512Mi }
+        service: { port: 8080 }
