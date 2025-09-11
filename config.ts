@@ -96,7 +96,7 @@ export const DEFAULT_EGRESS: Partial<EgressConfig> = {
 export const DEFAULT_INGRESS: Required<IngressConfig> = {
     allocateGlobalStaticIp: true,
     hostTemplate: "${LB_IP}.sslip.io",
-    certManagerEmail: "admin@example.com",
+    certManagerEmail: process.env.CERT_MANAGER_EMAIL || "admin@example.com",
 };
 
 export const DEFAULT_HPA: Required<HPAConfig> = {

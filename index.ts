@@ -8,6 +8,7 @@ import { createGkeCluster } from "./gcp/cluster/gke";
 import { createRegionalStaticIp } from "./gcp/ingress/static-ip";
 import { createNginxIngressController } from "./gcp/ingress/nginx-ingress";
 import { createCertManager } from "./gcp/ingress/cert-manager";
+import { createAppDeployment } from "./gcp/app";
 
 // Load and validate configuration
 const config = loadConfig();
@@ -108,7 +109,16 @@ users:
     const { certManager, clusterIssuer } = createCertManager(
         cluster.name,
         k8sProvider,
-        cluster.ingress?.certManagerEmail || "admin@example.com"
+        cluster.ingress?.certManagerEmail || process.env.CERT_MANAGER_EMAIL || "admin@example.com"
+    );
+
+    // Create app deployment
+    const { deployment, service, hpa, ingress } = createAppDeployment(
+        cluster.name,
+        cluster,
+        k8sProvider,
+        regionalIp.address,
+        clusterIssuer
     );
 
     return {
@@ -126,6 +136,10 @@ users:
         nginxIngress: nginxIngress,
         certManager: certManager,
         clusterIssuer: clusterIssuer,
+        deployment: deployment,
+        service: service,
+        hpa: hpa,
+        ingress: ingress,
     };
 });
 
