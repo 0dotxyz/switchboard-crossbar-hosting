@@ -30,3 +30,6 @@ config:
           requests: { cpu: 200m, memory: 256Mi }
           limits:   { cpu: 500m, memory: 512Mi }
         service: { port: 8080 }
+        cluster:
+          deletionProtection: false
+          description: "Primary Crossbar GKE cluster"

@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as gcp from "@pulumi/gcp";
-import { NodePoolConfig, DEFAULT_NODEPOOL } from "../../config";
+import { NodePoolConfig, DEFAULT_NODEPOOL, DEFAULT_CLUSTER } from "../../config";
 
 export interface GkeResult {
     cluster: gcp.container.Cluster;
@@ -13,9 +13,11 @@ export function createGkeCluster(
     subnet: gcp.compute.Subnetwork,
     provider: gcp.Provider,
     nodepool: NodePoolConfig,
-    privateNodes: boolean = true
+    privateNodes: boolean = true,
+    clusterConfig?: { deletionProtection?: boolean; description?: string }
 ): GkeResult {
-    const config = { ...DEFAULT_NODEPOOL, ...nodepool };
+    const nodepoolConfig = { ...DEFAULT_NODEPOOL, ...nodepool };
+    const clusterSettings = { ...DEFAULT_CLUSTER, ...clusterConfig };
 
     // Create GKE cluster
     const cluster = new gcp.container.Cluster(`${name}-cluster`, {
@@ -44,7 +46,8 @@ export function createGkeCluster(
             servicesSecondaryRangeName: "services",
         },
 
-        description: `GKE cluster for ${name}`,
+        description: clusterSettings.description,
+        deletionProtection: clusterSettings.deletionProtection,
     }, { provider });
 
     // Create node pool
@@ -52,20 +55,20 @@ export function createGkeCluster(
         name: `${name}-nodepool`,
         location: region,
         cluster: cluster.name,
-        nodeCount: config.minNodes,
+        nodeCount: nodepoolConfig.minNodes,
 
         // Autoscaling configuration
         autoscaling: {
-            minNodeCount: config.minNodes,
-            maxNodeCount: config.maxNodes,
+            minNodeCount: nodepoolConfig.minNodes,
+            maxNodeCount: nodepoolConfig.maxNodes,
         },
 
         // Node configuration
         nodeConfig: {
-            machineType: config.machineType,
-            diskSizeGb: config.diskSizeGb,
+            machineType: nodepoolConfig.machineType,
+            diskSizeGb: nodepoolConfig.diskSizeGb,
             diskType: "pd-standard",
-            preemptible: config.spot,
+            preemptible: nodepoolConfig.spot,
 
             // Service account
             serviceAccount: "default",

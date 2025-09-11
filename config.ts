@@ -26,6 +26,7 @@ export interface EgressConfig {
 export interface IngressConfig {
     allocateGlobalStaticIp?: boolean;
     hostTemplate?: string;
+    certManagerEmail?: string;
 }
 
 export interface HPAConfig {
@@ -65,6 +66,10 @@ export interface ClusterConfig {
     ingress?: IngressConfig;
     app: AppConfig;
     experimental?: ExperimentalConfig;
+    cluster?: {
+        deletionProtection?: boolean;
+        description?: string;
+    };
 }
 
 export interface Config {
@@ -91,6 +96,7 @@ export const DEFAULT_EGRESS: Partial<EgressConfig> = {
 export const DEFAULT_INGRESS: Required<IngressConfig> = {
     allocateGlobalStaticIp: true,
     hostTemplate: "${LB_IP}.sslip.io",
+    certManagerEmail: "admin@example.com",
 };
 
 export const DEFAULT_HPA: Required<HPAConfig> = {
@@ -107,6 +113,11 @@ export const DEFAULT_SERVICE: Required<ServiceConfig> = {
 
 export const DEFAULT_EXPERIMENTAL: Required<ExperimentalConfig> = {
     gatewayApi: false,
+};
+
+export const DEFAULT_CLUSTER = {
+    deletionProtection: false,
+    description: "GKE cluster managed by Pulumi",
 };
 
 // Validation functions
