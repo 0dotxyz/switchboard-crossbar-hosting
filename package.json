@@ -1,0 +1,14 @@
+{
+    "name": "switchboard-crossbar-hosting",
+    "main": "index.ts",
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@pulumi/gcp": "^8.0.0",
+        "@pulumi/kubernetes": "^4.0.0",
+        "@pulumi/pulumi": "^3.113.0",
+        "dotenv": "^17.2.2"
+    }
+}
