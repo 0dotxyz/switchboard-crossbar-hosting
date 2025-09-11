@@ -22,13 +22,23 @@ export function createVpc(
         description: `VPC for ${name} cluster`,
     }, { provider });
 
-    // Create subnet
+    // Create subnet with secondary IP ranges for GKE
     const subnet = new gcp.compute.Subnetwork(`${name}-subnet`, {
         name: `${config.vpcName}-subnet`,
         ipCidrRange: config.subnetCidr,
         region: region,
         network: vpc.id,
         description: `Subnet for ${name} cluster in ${region}`,
+        secondaryIpRanges: [
+            {
+                rangeName: "pods",
+                ipCidrRange: "10.11.0.0/16", // Pod IP range
+            },
+            {
+                rangeName: "services",
+                ipCidrRange: "10.12.0.0/16", // Service IP range
+            },
+        ],
     }, { provider });
 
     return { vpc, subnet };
