@@ -1,6 +1,9 @@
 /bin/
 /node_modules/
 
-ai/
-
+# Environment files
 .env
+.env.local
+.env.*.local
+
+ai/

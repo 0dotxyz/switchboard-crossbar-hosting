@@ -3,8 +3,8 @@ config:
   # or via gcp:project config if needed
   
   clusters:
-    - name: demo-gke
-      region: us-central1
+    - name: primary-gke
+      region: asia-northeast1
       networking:
         vpcName: gke-egress-vpc
         subnetCidr: 10.10.0.0/20
