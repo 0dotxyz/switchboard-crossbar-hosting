@@ -1,8 +1,34 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as dotenv from "dotenv";
+import * as fs from "fs";
+import * as path from "path";
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables based on Pulumi stack
+function loadEnvironmentVariables(): void {
+    const stack = pulumi.getStack();
+
+    let envFile: string;
+    if (stack === "stage") {
+        envFile = "stage.env";
+    } else if (stack === "prod") {
+        envFile = "prod.env";
+    } else {
+        // Default to stage for any other stack (including dev)
+        envFile = "stage.env";
+    }
+
+    const envPath = path.resolve(envFile);
+
+    if (fs.existsSync(envPath)) {
+        console.log(`Loading environment variables from ${envFile} for stack: ${stack}`);
+        dotenv.config({ path: envPath });
+    } else {
+        console.warn(`Warning: ${envFile} file not found for stack: ${stack}`);
+    }
+}
+
+// Load environment variables based on stack
+loadEnvironmentVariables();
 
 export interface NetworkingConfig {
     vpcName?: string;

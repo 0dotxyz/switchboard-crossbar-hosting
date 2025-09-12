@@ -7,7 +7,9 @@ Basic repo that allows you to run your own crossbar instance very simply.
 ## Pre-Reqs
 
 1. [Install pulumi and setup all your credentials.](https://www.pulumi.com/docs/iac/get-started/gcp/begin/)
-2. Create a .env file...
+2. Create a stage.env or prod.env file...
+3. Init your stack: `pulumi stack init org/stage` and `pulumi stack init org/prod` respectively.
+3. Select your stack: `pulumi stack select org/stage` or `pulumi stack select org/prod`. It's recommended to have two environemnts. This way you can test new crossbar tags without affecting the production environment.
 3. Run `pulumi up` to deploy the infrastructure.
 4. If you run into issues, you can run `pulumi up` again in most cases. Other times, you might need to `pulumi destroy` and then `pulumi up` again.
 
