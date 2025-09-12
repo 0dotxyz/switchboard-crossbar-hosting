@@ -27,8 +27,18 @@ const crossbarEnvVars = getCrossbarEnvVars();
 // Export GCP project for verification
 export const gcpProjectId = gcpProject;
 
+// Create a shared IngressClass for all regions (cluster-scoped resource)
+const sharedIngressClass = new k8s.networking.v1.IngressClass("nginx", {
+    metadata: {
+        name: "nginx",
+    },
+    spec: {
+        controller: "k8s.io/ingress-nginx",
+    },
+});
+
 // Create infrastructure for each region
-const clusterResults = config.regions.map(region => {
+const clusterResults = config.regions.map((region, index) => {
     const clusterName = `crossbar-${region}`;
 
     // Create VPC and subnet

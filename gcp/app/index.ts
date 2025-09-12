@@ -53,6 +53,7 @@ export function createAppDeployment(
                         },
                     },
                     spec: {
+                        restartPolicy: "Always",
                         containers: [
                             {
                                 name: "app",
@@ -76,19 +77,19 @@ export function createAppDeployment(
                                 },
                                 livenessProbe: {
                                     httpGet: {
-                                        path: "/healthz",
+                                        path: "/simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true",
                                         port: serviceConfig.port,
                                     },
                                     initialDelaySeconds: 30,
-                                    periodSeconds: 10,
+                                    periodSeconds: 30,
                                 },
                                 readinessProbe: {
                                     httpGet: {
-                                        path: "/healthz",
+                                        path: "/simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true",
                                         port: serviceConfig.port,
                                     },
-                                    initialDelaySeconds: 5,
-                                    periodSeconds: 5,
+                                    initialDelaySeconds: 10,
+                                    periodSeconds: 10,
                                 },
                             },
                         ],
@@ -137,7 +138,7 @@ export function createAppDeployment(
                 annotations: {
                     "kubernetes.io/ingress.class": "nginx",
                     "cert-manager.io/cluster-issuer": clusterIssuer.metadata.name,
-                    "nginx.ingress.kubernetes.io/ssl-redirect": "true",
+                    "nginx.ingress.kubernetes.io/ssl-redirect": "false", // Disable SSL redirect to allow ACME challenges
                 },
             },
             spec: {

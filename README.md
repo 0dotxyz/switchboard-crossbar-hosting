@@ -16,4 +16,4 @@ Basic repo that allows you to run your own crossbar instance very simply.
 2. If you want to destroy. First you need to set the `deletionProtection` to `false` in the Pulumi.dev.yaml file.
     1. Then you do a `pulumi up` to update the state.
     2. Then you can do a `pulumi destroy` to destroy the infrastructure.
-3.
+3. If your certs don't work, delete them: `kubectl delete certificate crossbar-us-{region}-tls-secret --context=gke_{project_name}_{region}_crossbar-{region}-cluster`
