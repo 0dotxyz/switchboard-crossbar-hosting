@@ -15,16 +15,16 @@ export function createVpc(
 ): VpcResult {
     const config = { ...DEFAULT_NETWORKING, ...networking };
 
-    // Create VPC
+    // Create VPC with unique name per region
     const vpc = new gcp.compute.Network(`${name}-vpc`, {
-        name: config.vpcName,
+        name: `${config.vpcName}-${region}`,
         autoCreateSubnetworks: false,
         description: `VPC for ${name} cluster`,
     }, { provider });
 
     // Create subnet with secondary IP ranges for GKE
     const subnet = new gcp.compute.Subnetwork(`${name}-subnet`, {
-        name: `${config.vpcName}-subnet`,
+        name: `${config.vpcName}-${region}-subnet`,
         ipCidrRange: config.subnetCidr,
         region: region,
         network: vpc.id,

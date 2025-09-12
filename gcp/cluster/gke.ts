@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as gcp from "@pulumi/gcp";
-import { NodePoolConfig, DEFAULT_NODEPOOL, DEFAULT_CLUSTER } from "../../config";
+import { NodePoolConfig } from "../../config";
 
 export interface GkeResult {
     cluster: gcp.container.Cluster;
@@ -16,13 +16,23 @@ export function createGkeCluster(
     privateNodes: boolean = true,
     clusterConfig?: { deletionProtection?: boolean; description?: string }
 ): GkeResult {
-    const nodepoolConfig = { ...DEFAULT_NODEPOOL, ...nodepool };
-    const clusterSettings = { ...DEFAULT_CLUSTER, ...clusterConfig };
+    const nodepoolConfig = {
+        machineType: "e2-standard-2",
+        diskSizeGb: 50,
+        spot: true,
+        ...nodepool
+    };
+    const clusterSettings = {
+        deletionProtection: false,
+        description: "GKE cluster managed by Pulumi",
+        ...clusterConfig
+    };
 
-    // Create GKE cluster
+    // Create GKE cluster in specific zone (-a) for single node deployment
+    const zone = `${region}-a`;
     const cluster = new gcp.container.Cluster(`${name}-cluster`, {
         name: `${name}-cluster`,
-        location: region,
+        location: zone,
         network: subnet.network,
         subnetwork: subnet.name,
         removeDefaultNodePool: true,
@@ -50,18 +60,12 @@ export function createGkeCluster(
         deletionProtection: clusterSettings.deletionProtection,
     }, { provider });
 
-    // Create node pool
+    // Create node pool with exactly 1 node (no autoscaling)
     const nodePool = new gcp.container.NodePool(`${name}-nodepool`, {
         name: `${name}-nodepool`,
-        location: region,
+        location: zone,
         cluster: cluster.name,
-        nodeCount: nodepoolConfig.minNodes,
-
-        // Autoscaling configuration
-        autoscaling: {
-            minNodeCount: nodepoolConfig.minNodes,
-            maxNodeCount: nodepoolConfig.maxNodes,
-        },
+        nodeCount: 1,
 
         // Node configuration
         nodeConfig: {

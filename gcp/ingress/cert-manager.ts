@@ -10,17 +10,18 @@ export interface CertManagerResult {
 export function createCertManager(
     name: string,
     provider: k8s.Provider,
-    email: string = "admin@example.com"
+    email: string = "admin@example.com",
+    dependencies?: pulumi.Resource[]
 ): CertManagerResult {
     // Create cert-manager namespace
-    const certManagerNamespace = new k8s.core.v1.Namespace("cert-manager-ns", {
+    const certManagerNamespace = new k8s.core.v1.Namespace(`${name}-cert-manager-ns`, {
         metadata: {
             name: "cert-manager",
         },
     }, { provider });
 
     // Install cert-manager via Helm
-    const certManager = new k8sHelm.Release("cert-manager", {
+    const certManager = new k8sHelm.Release(`${name}-cert-manager`, {
         chart: "cert-manager",
         version: "v1.14.4",
         repositoryOpts: {
@@ -32,11 +33,11 @@ export function createCertManager(
         },
     }, {
         provider,
-        dependsOn: [certManagerNamespace],
+        dependsOn: [certManagerNamespace, ...(dependencies || [])],
     });
 
     // Create webhook endpoints to ensure cert-manager is ready
-    const webhookReady = new k8s.core.v1.Endpoints("cert-manager-webhook-endpoints", {
+    const webhookReady = new k8s.core.v1.Endpoints(`${name}-cert-manager-webhook-endpoints`, {
         metadata: {
             name: "cert-manager-webhook",
             namespace: "cert-manager",

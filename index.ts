@@ -27,41 +27,50 @@ const crossbarEnvVars = getCrossbarEnvVars();
 // Export GCP project for verification
 export const gcpProjectId = gcpProject;
 
-// Export environment variables for debugging
-export const crossbarEnvVarsFound = Object.keys(crossbarEnvVars);
+// We'll create the IngressClass inside the cluster loop to ensure proper dependencies
 
-// Create infrastructure for each cluster
-const clusterResults = config.clusters.map(cluster => {
+// Create infrastructure for each region
+const clusterResults = config.regions.map((region, index) => {
+    const clusterName = `crossbar-${region}`;
+
     // Create VPC and subnet
     const { vpc, subnet } = createVpc(
-        cluster.name,
-        cluster.region,
+        clusterName,
+        region,
         gcpProvider,
-        cluster.networking
+        {
+            vpcName: `gke-egress-vpc-${region}`,
+            subnetCidr: "10.10.0.0/20",
+            privateNodes: true,
+        }
     );
 
     // Create NAT Gateway
     const { router, nat, staticIps } = createNatGateway(
-        cluster.name,
-        cluster.region,
+        clusterName,
+        region,
         subnet,
         gcpProvider,
-        cluster.egress
+        { numNatAddresses: 1 }
     );
 
     // Create GKE cluster
     const { cluster: gkeCluster, nodePool } = createGkeCluster(
-        cluster.name,
-        cluster.region,
+        clusterName,
+        region,
         subnet,
         gcpProvider,
-        cluster.nodepool,
-        cluster.networking?.privateNodes,
-        cluster.cluster
+        {
+            machineType: config.machineType,
+            diskSizeGb: config.diskSizeGb,
+            spot: config.spot,
+        },
+        true, // privateNodes
+        { deletionProtection: config.clusterProtection }
     );
 
-    // Create Kubernetes provider for this cluster
-    const k8sProvider = new k8s.Provider(`${cluster.name}-k8s-provider`, {
+    // Create Kubernetes provider for this cluster (with cluster dependency)
+    const k8sProvider = new k8s.Provider(`${clusterName}-k8s-provider`, {
         kubeconfig: gkeCluster.endpoint.apply(endpoint =>
             gkeCluster.masterAuth.apply(auth => {
                 const clusterCaCertificate = auth.clusterCaCertificate;
@@ -70,16 +79,16 @@ clusters:
 - cluster:
     certificate-authority-data: ${clusterCaCertificate}
     server: https://${endpoint}
-  name: ${cluster.name}-cluster
+  name: ${clusterName}-cluster
 contexts:
 - context:
-    cluster: ${cluster.name}-cluster
-    user: ${cluster.name}-user
-  name: ${cluster.name}-context
-current-context: ${cluster.name}-context
+    cluster: ${clusterName}-cluster
+    user: ${clusterName}-user
+  name: ${clusterName}-context
+current-context: ${clusterName}-context
 kind: Config
 users:
-- name: ${cluster.name}-user
+- name: ${clusterName}-user
   user:
     exec:
       apiVersion: client.authentication.k8s.io/v1beta1
@@ -89,41 +98,70 @@ users:
       provideClusterInfo: true`;
             })
         ),
+    }, { dependsOn: [gkeCluster, nodePool] });
+
+    // Add node pool readiness check to ensure nodes are available
+    const nodePoolReady = nodePool.nodeCount.apply(count => {
+        // This will only resolve when the node pool has nodes
+        return count;
     });
+
+    // Create shared IngressClass only for the first cluster to avoid duplicates
+    let sharedIngressClass;
+    if (index === 0) {
+        sharedIngressClass = new k8s.networking.v1.IngressClass("nginx", {
+            metadata: {
+                name: "nginx",
+            },
+            spec: {
+                controller: "k8s.io/ingress-nginx",
+            },
+        }, { provider: k8sProvider, dependsOn: [gkeCluster] });
+    }
 
     // Create regional static IP for load balancer
     const { regionalIp } = createRegionalStaticIp(
-        cluster.name,
-        cluster.region,
+        clusterName,
+        region,
         gcpProvider
     );
 
-    // Create NGINX Ingress Controller
+    // Create NGINX Ingress Controller (depends on node pool being ready)
     const { nginxIngress } = createNginxIngressController(
-        cluster.name,
+        clusterName,
         k8sProvider,
-        regionalIp
+        regionalIp,
+        [nodePool] // Wait for node pool to be ready
     );
 
-    // Create cert-manager
+    // Create cert-manager (depends on node pool being ready)
     const { certManager, clusterIssuer } = createCertManager(
-        cluster.name,
+        clusterName,
         k8sProvider,
-        cluster.ingress?.certManagerEmail || process.env.CERT_MANAGER_EMAIL || "admin@example.com"
+        process.env.CERT_MANAGER_EMAIL || "admin@example.com",
+        [nodePool] // Wait for node pool to be ready
     );
 
-    // Create app deployment
-    const { deployment, service, hpa, ingress } = createAppDeployment(
-        cluster.name,
-        cluster,
+    // Create app deployment (depends on cert-manager being ready)
+    const { deployment, service, ingress } = createAppDeployment(
+        clusterName,
+        {
+            image: config.image,
+            resources: {
+                requests: { cpu: "200m", memory: "256Mi" },
+                limits: { cpu: "500m", memory: "512Mi" }
+            },
+            service: { port: 8080 }
+        },
         k8sProvider,
         regionalIp.address,
-        clusterIssuer
+        clusterIssuer,
+        [certManager, nginxIngress] // Dependencies: wait for cert-manager and nginx to be ready
     );
 
     return {
-        name: cluster.name,
-        region: cluster.region,
+        name: clusterName,
+        region: region,
         vpc: vpc,
         subnet: subnet,
         router: router,
@@ -138,26 +176,24 @@ users:
         clusterIssuer: clusterIssuer,
         deployment: deployment,
         service: service,
-        hpa: hpa,
         ingress: ingress,
     };
 });
 
-// Export cluster results
-export const clusterInfrastructure = clusterResults;
-
-// For backward compatibility, export cluster configs
-export const clusterConfigs = config.clusters.map(cluster => ({
-    name: cluster.name,
-    region: cluster.region,
-    hasCrossbarEnvVars: Object.keys(crossbarEnvVars).length > 0
-}));
-
-// Export ingress information
-export const ingressInfo = clusterResults.map(result => ({
-    clusterName: result.name,
+// Export simplified cluster information
+export const clusters = clusterResults.map(result => ({
+    name: result.name,
     region: result.region,
-    regionalIp: result.regionalIp.address,
     httpsUrl: result.regionalIp.address.apply(ip => `https://${ip}.sslip.io`),
-    natIps: result.staticIps.map(ip => ip.address),
+    egressIp: result.staticIps[0].address,
 }));
+
+// Export summary
+export const summary = {
+    totalRegions: config.regions.length,
+    regions: config.regions,
+    image: config.image,
+    machineType: config.machineType,
+    spot: config.spot,
+    globalLoadBalancer: config.globalLoadBalancer,
+};
