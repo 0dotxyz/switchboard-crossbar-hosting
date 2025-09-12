@@ -13,7 +13,8 @@ export function createAppDeployment(
     appConfig: AppConfig,
     k8sProvider: k8s.Provider,
     regionalIp: pulumi.Output<string>,
-    clusterIssuer: k8s.apiextensions.CustomResource
+    clusterIssuer: k8s.apiextensions.CustomResource,
+    dependencies?: pulumi.Resource[]
 ): AppDeploymentResult {
     // Get CROSSBAR_ environment variables
     const crossbarEnvVars = getCrossbarEnvVars();
@@ -71,8 +72,8 @@ export function createAppDeployment(
                                         memory: "2048Mi",
                                     },
                                     limits: {
-                                        cpu: "1000m",
-                                        memory: "2048Mi",
+                                        cpu: "2000m",
+                                        memory: "4096Mi",
                                     },
                                 },
                                 livenessProbe: {
@@ -171,7 +172,10 @@ export function createAppDeployment(
                 ],
             },
         },
-        { provider: k8sProvider }
+        {
+            provider: k8sProvider,
+            dependsOn: dependencies
+        }
     );
 
     return {

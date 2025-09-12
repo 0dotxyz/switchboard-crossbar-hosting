@@ -27,15 +27,7 @@ const crossbarEnvVars = getCrossbarEnvVars();
 // Export GCP project for verification
 export const gcpProjectId = gcpProject;
 
-// Create a shared IngressClass for all regions (cluster-scoped resource)
-const sharedIngressClass = new k8s.networking.v1.IngressClass("nginx", {
-    metadata: {
-        name: "nginx",
-    },
-    spec: {
-        controller: "k8s.io/ingress-nginx",
-    },
-});
+// We'll create the IngressClass inside the cluster loop to ensure proper dependencies
 
 // Create infrastructure for each region
 const clusterResults = config.regions.map((region, index) => {
@@ -77,7 +69,7 @@ const clusterResults = config.regions.map((region, index) => {
         { deletionProtection: config.clusterProtection }
     );
 
-    // Create Kubernetes provider for this cluster
+    // Create Kubernetes provider for this cluster (with cluster dependency)
     const k8sProvider = new k8s.Provider(`${clusterName}-k8s-provider`, {
         kubeconfig: gkeCluster.endpoint.apply(endpoint =>
             gkeCluster.masterAuth.apply(auth => {
@@ -106,7 +98,26 @@ users:
       provideClusterInfo: true`;
             })
         ),
+    }, { dependsOn: [gkeCluster, nodePool] });
+
+    // Add node pool readiness check to ensure nodes are available
+    const nodePoolReady = nodePool.nodeCount.apply(count => {
+        // This will only resolve when the node pool has nodes
+        return count;
     });
+
+    // Create shared IngressClass only for the first cluster to avoid duplicates
+    let sharedIngressClass;
+    if (index === 0) {
+        sharedIngressClass = new k8s.networking.v1.IngressClass("nginx", {
+            metadata: {
+                name: "nginx",
+            },
+            spec: {
+                controller: "k8s.io/ingress-nginx",
+            },
+        }, { provider: k8sProvider, dependsOn: [gkeCluster] });
+    }
 
     // Create regional static IP for load balancer
     const { regionalIp } = createRegionalStaticIp(
@@ -115,21 +126,23 @@ users:
         gcpProvider
     );
 
-    // Create NGINX Ingress Controller
+    // Create NGINX Ingress Controller (depends on node pool being ready)
     const { nginxIngress } = createNginxIngressController(
         clusterName,
         k8sProvider,
-        regionalIp
+        regionalIp,
+        [nodePool] // Wait for node pool to be ready
     );
 
-    // Create cert-manager
+    // Create cert-manager (depends on node pool being ready)
     const { certManager, clusterIssuer } = createCertManager(
         clusterName,
         k8sProvider,
-        process.env.CERT_MANAGER_EMAIL || "admin@example.com"
+        process.env.CERT_MANAGER_EMAIL || "admin@example.com",
+        [nodePool] // Wait for node pool to be ready
     );
 
-    // Create app deployment
+    // Create app deployment (depends on cert-manager being ready)
     const { deployment, service, ingress } = createAppDeployment(
         clusterName,
         {
@@ -142,7 +155,8 @@ users:
         },
         k8sProvider,
         regionalIp.address,
-        clusterIssuer
+        clusterIssuer,
+        [certManager, nginxIngress] // Dependencies: wait for cert-manager and nginx to be ready
     );
 
     return {

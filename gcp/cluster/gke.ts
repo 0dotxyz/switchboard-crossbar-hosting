@@ -28,10 +28,11 @@ export function createGkeCluster(
         ...clusterConfig
     };
 
-    // Create GKE cluster
+    // Create GKE cluster in specific zone (-a) for single node deployment
+    const zone = `${region}-a`;
     const cluster = new gcp.container.Cluster(`${name}-cluster`, {
         name: `${name}-cluster`,
-        location: region,
+        location: zone,
         network: subnet.network,
         subnetwork: subnet.name,
         removeDefaultNodePool: true,
@@ -62,7 +63,7 @@ export function createGkeCluster(
     // Create node pool with exactly 1 node (no autoscaling)
     const nodePool = new gcp.container.NodePool(`${name}-nodepool`, {
         name: `${name}-nodepool`,
-        location: region,
+        location: zone,
         cluster: cluster.name,
         nodeCount: 1,
 

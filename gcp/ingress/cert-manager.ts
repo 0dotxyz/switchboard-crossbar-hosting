@@ -10,7 +10,8 @@ export interface CertManagerResult {
 export function createCertManager(
     name: string,
     provider: k8s.Provider,
-    email: string = "admin@example.com"
+    email: string = "admin@example.com",
+    dependencies?: pulumi.Resource[]
 ): CertManagerResult {
     // Create cert-manager namespace
     const certManagerNamespace = new k8s.core.v1.Namespace(`${name}-cert-manager-ns`, {
@@ -32,7 +33,7 @@ export function createCertManager(
         },
     }, {
         provider,
-        dependsOn: [certManagerNamespace],
+        dependsOn: [certManagerNamespace, ...(dependencies || [])],
     });
 
     // Create webhook endpoints to ensure cert-manager is ready

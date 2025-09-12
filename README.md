@@ -9,6 +9,7 @@ Basic repo that allows you to run your own crossbar instance very simply.
 1. [Install pulumi and setup all your credentials.](https://www.pulumi.com/docs/iac/get-started/gcp/begin/)
 2. Create a .env file...
 3. Run `pulumi up` to deploy the infrastructure.
+4. If you run into issues, you can run `pulumi up` again in most cases. Other times, you might need to `pulumi destroy` and then `pulumi up` again.
 
 # Caveats
 

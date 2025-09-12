@@ -10,7 +10,8 @@ export interface NginxIngressResult {
 export function createNginxIngressController(
     name: string,
     provider: k8s.Provider,
-    regionalIp: gcp.compute.Address
+    regionalIp: gcp.compute.Address,
+    dependencies?: pulumi.Resource[]
 ): NginxIngressResult {
     // Install NGINX Ingress Controller via Helm
     const nginxIngress = new k8sHelm.Chart(`${name}-ngx`, {
@@ -51,7 +52,7 @@ export function createNginxIngressController(
                 },
             },
         },
-    }, { provider });
+    }, { provider, dependsOn: dependencies });
 
     return { nginxIngress };
 }
