@@ -1,17 +1,16 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { ClusterConfig, DEFAULT_HPA, DEFAULT_SERVICE, getCrossbarEnvVars } from "../../config";
+import { AppConfig, DEFAULT_SERVICE, getCrossbarEnvVars } from "../../config";
 
 export interface AppDeploymentResult {
     deployment: k8s.apps.v1.Deployment;
     service: k8s.core.v1.Service;
-    hpa?: k8s.autoscaling.v2.HorizontalPodAutoscaler;
     ingress: k8s.networking.v1.Ingress;
 }
 
 export function createAppDeployment(
     clusterName: string,
-    clusterConfig: ClusterConfig,
+    appConfig: AppConfig,
     k8sProvider: k8s.Provider,
     regionalIp: pulumi.Output<string>,
     clusterIssuer: k8s.apiextensions.CustomResource
@@ -25,11 +24,10 @@ export function createAppDeployment(
         value: value,
     }));
 
-    // Merge default values with cluster config
-    const hpaConfig = { ...DEFAULT_HPA, ...clusterConfig.app.hpa };
-    const serviceConfig = { ...DEFAULT_SERVICE, ...clusterConfig.app.service };
+    // Merge default values with app config
+    const serviceConfig = { ...DEFAULT_SERVICE, ...appConfig.service };
 
-    // Create Kubernetes Deployment
+    // Create Kubernetes Deployment with exactly 1 replica
     const deployment = new k8s.apps.v1.Deployment(
         `${clusterName}-app-deployment`,
         {
@@ -41,7 +39,7 @@ export function createAppDeployment(
                 },
             },
             spec: {
-                replicas: hpaConfig.enabled ? hpaConfig.minReplicas : 1,
+                replicas: 1, // Fixed to 1 replica, no HPA
                 selector: {
                     matchLabels: {
                         app: `${clusterName}-app`,
@@ -51,13 +49,14 @@ export function createAppDeployment(
                     metadata: {
                         labels: {
                             app: `${clusterName}-app`,
+                            component: "application",
                         },
                     },
                     spec: {
                         containers: [
                             {
                                 name: "app",
-                                image: clusterConfig.app.image,
+                                image: appConfig.image,
                                 ports: [
                                     {
                                         containerPort: serviceConfig.port,
@@ -65,13 +64,19 @@ export function createAppDeployment(
                                     },
                                 ],
                                 env: envVars,
-                                resources: clusterConfig.app.resources ? {
-                                    requests: clusterConfig.app.resources.requests,
-                                    limits: clusterConfig.app.resources.limits,
-                                } : undefined,
+                                resources: appConfig.resources || {
+                                    requests: {
+                                        cpu: "1000m",
+                                        memory: "2048Mi",
+                                    },
+                                    limits: {
+                                        cpu: "1000m",
+                                        memory: "2048Mi",
+                                    },
+                                },
                                 livenessProbe: {
                                     httpGet: {
-                                        path: "/simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true",
+                                        path: "/healthz",
                                         port: serviceConfig.port,
                                     },
                                     initialDelaySeconds: 30,
@@ -79,7 +84,7 @@ export function createAppDeployment(
                                 },
                                 readinessProbe: {
                                     httpGet: {
-                                        path: "/simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true",
+                                        path: "/healthz",
                                         port: serviceConfig.port,
                                     },
                                     initialDelaySeconds: 5,
@@ -94,7 +99,7 @@ export function createAppDeployment(
         { provider: k8sProvider }
     );
 
-    // Create ClusterIP Service
+    // Create Kubernetes Service
     const service = new k8s.core.v1.Service(
         `${clusterName}-app-service`,
         {
@@ -102,6 +107,7 @@ export function createAppDeployment(
                 name: `${clusterName}-app-service`,
                 labels: {
                     app: `${clusterName}-app`,
+                    component: "application",
                 },
             },
             spec: {
@@ -110,6 +116,7 @@ export function createAppDeployment(
                     {
                         port: serviceConfig.port,
                         targetPort: serviceConfig.port,
+                        protocol: "TCP",
                         name: "http",
                     },
                 ],
@@ -121,63 +128,12 @@ export function createAppDeployment(
         { provider: k8sProvider }
     );
 
-    // Create HorizontalPodAutoscaler if enabled
-    let hpa: k8s.autoscaling.v2.HorizontalPodAutoscaler | undefined;
-    if (hpaConfig.enabled) {
-        hpa = new k8s.autoscaling.v2.HorizontalPodAutoscaler(
-            `${clusterName}-app-hpa`,
-            {
-                metadata: {
-                    name: `${clusterName}-app-hpa`,
-                    labels: {
-                        app: `${clusterName}-app`,
-                    },
-                },
-                spec: {
-                    scaleTargetRef: {
-                        apiVersion: "apps/v1",
-                        kind: "Deployment",
-                        name: deployment.metadata.name,
-                    },
-                    minReplicas: hpaConfig.minReplicas,
-                    maxReplicas: hpaConfig.maxReplicas,
-                    metrics: [
-                        {
-                            type: "Resource",
-                            resource: {
-                                name: "cpu",
-                                target: {
-                                    type: "Utilization",
-                                    averageUtilization: hpaConfig.targetCpuUtilization,
-                                },
-                            },
-                        },
-                        {
-                            type: "Resource",
-                            resource: {
-                                name: "memory",
-                                target: {
-                                    type: "Utilization",
-                                    averageUtilization: hpaConfig.targetMemoryUtilization,
-                                },
-                            },
-                        },
-                    ],
-                },
-            },
-            { provider: k8sProvider }
-        );
-    }
-
-    // Create Ingress with TLS termination
+    // Create Ingress with TLS
     const ingress = new k8s.networking.v1.Ingress(
         `${clusterName}-app-ingress`,
         {
             metadata: {
                 name: `${clusterName}-app-ingress`,
-                labels: {
-                    app: `${clusterName}-app`,
-                },
                 annotations: {
                     "kubernetes.io/ingress.class": "nginx",
                     "cert-manager.io/cluster-issuer": clusterIssuer.metadata.name,
@@ -188,7 +144,7 @@ export function createAppDeployment(
                 tls: [
                     {
                         hosts: [regionalIp.apply(ip => `${ip}.sslip.io`)],
-                        secretName: `${clusterName}-app-tls`,
+                        secretName: `${clusterName}-tls-secret`,
                     },
                 ],
                 rules: [
@@ -220,7 +176,6 @@ export function createAppDeployment(
     return {
         deployment,
         service,
-        hpa,
         ingress,
     };
 }

@@ -13,7 +13,7 @@ export function createNginxIngressController(
     regionalIp: gcp.compute.Address
 ): NginxIngressResult {
     // Install NGINX Ingress Controller via Helm
-    const nginxIngress = new k8sHelm.Chart("nginx-ingress", {
+    const nginxIngress = new k8sHelm.Chart(`${name}-nginx-ingress`, {
         chart: "ingress-nginx",
         version: "4.10.1",
         fetchOpts: {
