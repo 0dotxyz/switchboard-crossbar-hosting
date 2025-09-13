@@ -2,6 +2,8 @@ config:
   regions:
     - asia-northeast1
     - asia-northeast2
+    - asia-northeast3
+    - asia-south1
   machineType: e2-standard-2  # 2 cores, 4GB RAM
   spot: false
   diskSizeGb: 50

@@ -12,6 +12,7 @@
 
 ## Table of Contents
 - [Overview](#overview)
+- [Sponsored Endpoints](#sponsored-endpoints)
 - [Basic Design and Architecture](#basic-design-and-architecture)
 - [Future Work](#future-work)
 - [Steps](#steps)
@@ -25,6 +26,29 @@ Basic repo that allows you to run your own crossbar instance very simply. The ma
 - The `crossbar` application is very performant and scaling based on resources is not the bottleneck.
 - Surge connects to many exchanges. If a single outgoing IP address is making too many requests, the exchanges will rate limit the IP address. This repo is built with that in mind. 
 - The closer you are to Tokyo the lower the latency.
+
+## Sponsored Endpoints
+
+| Company | Region | Endpoint | Stability | Notes |
+|---------|--------|----------|-----------|-------|
+| <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-northeast3` (Seoul) | `https://34.64.109.32.sslip.io` | 🟢 **Production** | Primary endpoint, regional coverage |
+| <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-south1` (Mumbai) | `https://34.14.210.122.sslip.io` | 🟢 **Production** | Secendary endpoint, South Asia endpoint, expanded coverage |
+| <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-northeast1` (Tokyo) | `https://35.200.6.110.sslip.io` | 🟢 **Production** | Staging endpoint, high availability but used to test new versions |
+
+> **Note**: All endpoints use preemptible nodes for cost optimization. Minor downtime (seconds) may occur during node preemption, but this saves 60-90% on infrastructure costs.
+
+### Endpoint Usage
+- **Primary**: Use `asia-northeast3` for best performance
+- **Load Balancing**: Rotate between endpoints to avoid rate limits
+- **Testing**: Use the stage environment for development
+
+### Adding Your Own Endpoints
+
+Want to sponsor additional endpoints? Deploy using this repo and submit a PR with your company logo and endpoint details!
+
+### 📢 Stay Updated
+
+Join our Telegram channel for endpoint updates, maintenance notifications, and community discussions: [@switchboard_endpoints](https://t.me/+ktZWZinw7xZlNmVh)
 
 ## Basic Design and Architecture
 
