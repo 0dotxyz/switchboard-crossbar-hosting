@@ -1,3 +1,23 @@
+<div align="center">
+  <img src="assets/images/p0-icon.jpg" alt="P0 Logo" width="120" style="margin-right: 20px;"/>
+  <img src="assets/images/switchboard.jpg" alt="Switchboard Logo" width="120"/>
+  <h1>Switchboard Crossbar Hosting</h1>
+  <p><em>Multi-region infrastructure deployment for Switchboard Crossbar instances</em></p>
+</div>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Pulumi](https://img.shields.io/badge/Infrastructure-Pulumi-blue)](https://www.pulumi.com/)
+[![GCP](https://img.shields.io/badge/Cloud-Google%20Cloud-orange)](https://cloud.google.com/)
+[![Kubernetes](https://img.shields.io/badge/Orchestration-Kubernetes-blue)](https://kubernetes.io/)
+
+## Table of Contents
+- [Overview](#overview)
+- [Basic Design and Architecture](#basic-design-and-architecture)
+- [Future Work](#future-work)
+- [Steps](#steps)
+- [Caveats](#caveats)
+- [Contributing](#contributing)
+
 # Overview
 
 Basic repo that allows you to run your own crossbar instance very simply. The main motivations:
@@ -22,7 +42,6 @@ Basic repo that allows you to run your own crossbar instance very simply. The ma
 
 # Steps
 
-## Pre-Reqs
 
 1. [Install pulumi and setup all your credentials.](https://www.pulumi.com/docs/iac/get-started/gcp/begin/)
 2. `cp env.example stage.env` and `cp env.example prod.env`
@@ -38,3 +57,7 @@ Basic repo that allows you to run your own crossbar instance very simply. The ma
     1. Then you do a `pulumi up` to update the state.
     2. Then you can do a `pulumi destroy` to destroy the infrastructure.
 3. If your certs don't work, delete them: `kubectl delete certificate crossbar-us-{region}-tls-secret --context=gke_{project_name}_{region}_crossbar-{region}-cluster`
+
+# Contributing
+
+Contributions are welcome. Simply create an issue first, we can discuss the changes you want to make. If you want to make a change, you can fork the repo and create a pull request.
