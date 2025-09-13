@@ -46,9 +46,11 @@ Basic repo that allows you to run your own crossbar instance very simply. The ma
 1. [Install pulumi and setup all your credentials.](https://www.pulumi.com/docs/iac/get-started/gcp/begin/)
 2. `cp env.example stage.env` and `cp env.example prod.env`
 3. Init your stack: `pulumi stack init {{org}}/stage` and `pulumi stack init {{org}}/prod` respectively.
-3. Select your stack: `pulumi stack select {{org}}/stage` or `pulumi stack select {{org}}/prod`. It's recommended to have two environemnts. This way you can test new crossbar tags without affecting the production environment.
-3. Run `pulumi up` to deploy the infrastructure.
-4. If you run into issues, you can run `pulumi up` again in most cases. Other times, you might need to `pulumi destroy` and then `pulumi up` again.
+4. Select your stack: `pulumi stack select {{org}}/stage` or `pulumi stack select {{org}}/prod`. It's recommended to have two environemnts. This way you can test new crossbar tags without affecting the production environment.
+5. Run `pulumi up` to deploy the infrastructure.
+6. If you run into issues, you can run `pulumi up` again in most cases. Other times, you might need to `pulumi destroy` and then `pulumi up` again.
+7. Once the infrastructure is deployed, you can see all your new IPs. They look something like this: `https://xx.xxx.xx.xx.sslip.io`
+
 
 # Caveats
 
