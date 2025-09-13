@@ -13,6 +13,9 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Sponsored Endpoints](#sponsored-endpoints)
+  - [Endpoint Usage](#endpoint-usage)
+  - [Adding Your Own Endpoints](#adding-your-own-endpoints)
+  - [📢 Stay Updated](#-stay-updated)
 - [Basic Design and Architecture](#basic-design-and-architecture)
 - [Future Work](#future-work)
 - [Steps](#steps)
