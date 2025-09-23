@@ -34,8 +34,7 @@ Basic repo that allows you to run your own crossbar instance very simply. The ma
 
 | Company | Region | Endpoint | Stability | Notes |
 |---------|--------|----------|-----------|-------|
-| <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-northeast3` (Seoul) | `https://34.64.109.32.sslip.io` | 🟢 **Production** | Primary endpoint, regional coverage |
-| <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-south1` (Mumbai) | `https://34.14.210.122.sslip.io` | 🟢 **Production** | Secendary endpoint, South Asia endpoint, expanded coverage |
+| <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-northeast2` (Seoul) | `https://34.97.218.183.sslip.io` | 🟢 **Production** | Primary endpoint, regional coverage |
 | <img src="assets/images/p0-icon.jpg" alt="P0" width="20"/> **P0** | `asia-northeast1` (Tokyo) | `https://35.200.6.110.sslip.io` | 🟢 **Production** | Staging endpoint, high availability but used to test new versions |
 
 > **Note**: All endpoints use preemptible nodes for cost optimization. Minor downtime (seconds) may occur during node preemption, but this saves 60-90% on infrastructure costs.
