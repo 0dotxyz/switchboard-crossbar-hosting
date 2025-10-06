@@ -1,6 +1,6 @@
 {
     "name": "switchboard-crossbar-hosting",
-    "main": "index.ts",
+    "main": "pulumi/index.ts",
     "devDependencies": {
         "@types/node": "^18",
         "typescript": "^5.0.0"
