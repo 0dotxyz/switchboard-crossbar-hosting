@@ -69,7 +69,7 @@ Join our Telegram channel for endpoint updates, maintenance notifications, and c
 # Steps
 
 
-1. [Install pulumi and setup all your credentials.](https://www.pulumi.com/docs/iac/get-started/gcp/begin/)
+1. [Install pulumi and setup all your credentials.](https://www.pulumi.com/docs/iac/get-started/gcp/begin/). Start from `cd pulumi`.
 2. `cp env.example stage.env` and `cp env.example prod.env`
 3. Init your stack: `pulumi stack init {{org}}/stage` and `pulumi stack init {{org}}/prod` respectively.
 4. Select your stack: `pulumi stack select {{org}}/stage` or `pulumi stack select {{org}}/prod`. It's recommended to have two environemnts. This way you can test new crossbar tags without affecting the production environment.
