@@ -5,5 +5,5 @@ config:
   machineType: e2-standard-2  # 2 cores, 4GB RAM
   spot: true
   diskSizeGb: 50
-  image: switchboardlabs/rust-crossbar:rc_25_10_06_10_57c
+  image: switchboardlabs/rust-crossbar:rc_25_10_08_18_57a
   clusterProtection: false
