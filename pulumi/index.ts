@@ -147,10 +147,7 @@ users:
         clusterName,
         {
             image: config.image,
-            resources: {
-                requests: { cpu: "200m", memory: "256Mi" },
-                limits: { cpu: "500m", memory: "512Mi" }
-            },
+            resources: config.resources,
             service: { port: 8080 }
         },
         k8sProvider,

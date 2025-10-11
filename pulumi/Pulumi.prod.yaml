@@ -2,8 +2,15 @@ config:
   regions:
     - asia-northeast1
     - asia-northeast2
-  machineType: e2-standard-2  # 2 cores, 4GB RAM
+  machineType: e2-custom-6-8192  # 6 cores, 8GB RAM
   spot: false
   diskSizeGb: 50
   image: switchboardlabs/rust-crossbar:rc_25_10_08_18_57a
   clusterProtection: false
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "4096Mi"
+    limits:
+      cpu: "4000m"
+      memory: "6144Mi"

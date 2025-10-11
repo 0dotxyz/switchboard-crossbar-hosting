@@ -81,6 +81,7 @@ export interface Config {
     image: string;
     clusterProtection?: boolean;
     globalLoadBalancer?: boolean;
+    resources?: ResourcesConfig;
 }
 
 // Default values
@@ -181,6 +182,9 @@ export function loadConfig(): Config {
     const clusterProtection = config.getBoolean("clusterProtection") ?? DEFAULT_CONFIG.clusterProtection;
     const globalLoadBalancer = config.getBoolean("globalLoadBalancer") ?? DEFAULT_CONFIG.globalLoadBalancer;
 
+    // Load resources configuration
+    const resources = config.getObject<ResourcesConfig>("resources");
+
     const fullConfig: Config = {
         regions,
         image,
@@ -189,6 +193,7 @@ export function loadConfig(): Config {
         diskSizeGb,
         clusterProtection,
         globalLoadBalancer,
+        resources,
     };
 
     validateConfig(fullConfig);
