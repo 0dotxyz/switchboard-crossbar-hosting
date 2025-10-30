@@ -142,7 +142,8 @@ export function getCrossbarEnvVars(): Record<string, string> {
 
     for (const [key, value] of Object.entries(process.env)) {
         if (key.startsWith("CROSSBAR_") && value !== undefined) {
-            crossbarEnvVars[key] = value;
+            const strippedKey = key.replace(/^CROSSBAR_/, "");
+            crossbarEnvVars[strippedKey] = value;
         }
     }
 

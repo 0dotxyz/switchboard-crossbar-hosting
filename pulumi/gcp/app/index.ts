@@ -41,6 +41,13 @@ export function createAppDeployment(
             },
             spec: {
                 replicas: 1, // Fixed to 1 replica, no HPA
+                strategy: {
+                    type: "RollingUpdate",
+                    rollingUpdate: {
+                        maxUnavailable: 1,
+                        maxSurge: 0,
+                    },
+                },
                 selector: {
                     matchLabels: {
                         app: `${clusterName}-app`,
