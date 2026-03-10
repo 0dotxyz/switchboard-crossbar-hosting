@@ -5,7 +5,7 @@ config:
   machineType: e2-custom-6-8192 # 6 cores, 8GB RAM
   spot: true
   diskSizeGb: 50
-  image: switchboardlabs/rust-crossbar:rc_26_02_26_16_26
+  image: switchboardlabs/rust-crossbar:rc_26_03_09_11_08
   clusterProtection: false
   resources:
     requests:
